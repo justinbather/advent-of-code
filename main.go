@@ -6,7 +6,100 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
+
+var keys = []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"}
+var nums = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+var numMap = map[string]rune{
+	"one":   '1',
+	"two":   '2',
+	"three": '3',
+	"four":  '4',
+	"five":  '5',
+	"six":   '6',
+	"seven": '7',
+	"eight": '8',
+	"nine":  '9',
+}
+
+type numItem struct {
+	Idx   int
+	Value string
+}
+
+func findFirst(line string) numItem {
+	var first numItem
+	for idx, num := range line {
+		if num >= '0' && num <= '9' {
+
+			first.Value = string(num)
+			first.Idx = idx
+			return first
+		}
+	}
+
+	return first
+}
+
+func findFirstWord(line string) numItem {
+
+	var first numItem
+	first.Idx = -1
+	for _, num := range keys {
+		numIdx := strings.Index(line, num)
+		if numIdx != -1 {
+			if numIdx <= first.Idx || first.Idx == -1 {
+				first.Value = string(numMap[num])
+				first.Idx = numIdx
+			}
+		}
+	}
+
+	return first
+}
+
+func findLast(line string) numItem {
+	var last numItem
+
+	for idx, num := range line {
+		if (num >= '0' && num <= '9') && idx >= last.Idx {
+
+			last.Idx = idx
+			last.Value = string(num)
+		}
+	}
+	return last
+}
+
+func findLastWord(line string) numItem {
+
+	var last numItem
+
+	for _, num := range keys {
+		numIdx := strings.Index(line, num)
+		if numIdx != -1 {
+			if numIdx >= last.Idx {
+				last.Value = string(numMap[num])
+				last.Idx = numIdx
+			}
+		}
+	}
+
+	return last
+}
+
+func addVals(s1 numItem, s2 numItem) int {
+	fmt.Printf("concating %s and %s\n", s1.Value, s2.Value)
+	temp := s1.Value + s2.Value
+
+	sum, err := strconv.Atoi(temp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return sum
+}
 
 func main() {
 
@@ -22,34 +115,36 @@ func main() {
 	var sum int
 
 	for scanner.Scan() {
-
-		var first string
-		var last string
 		line := scanner.Text()
-		for _, char := range line {
+		// find first
+		firstNum := findFirst(line)
+		firstWord := findFirstWord(line)
+		lastNum := findLast(line)
+		lastWord := findLastWord(line)
 
-			if string(char) >= "0" && string(char) <= "9" {
-				if first == "" {
-					//Grab first correct value found
-					first = string(char)
-				}
-				last = string(char)
-				// Greedy search for last valid value
-				fmt.Println(last)
-			}
+		var last numItem
+		var first numItem
+
+		if (firstNum.Idx < firstWord.Idx) || firstWord.Idx == -1 {
+			first = firstNum
+		} else {
+			first = firstWord
 		}
-		temp := first + last
-		tempSum, err := strconv.Atoi(temp)
-		if err != nil {
-			log.Fatal(err)
+
+		if (lastNum.Idx > lastWord.Idx) || lastWord.Value == "" {
+			last = lastNum
+		} else {
+			last = lastWord
 		}
-		sum += tempSum
+		fmt.Print(first, last)
+
+		temp := addVals(first, last)
+		sum += temp
 
 	}
-	fmt.Println(sum)
-
 	if scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
+	fmt.Println("sum: ", sum)
 }
