@@ -64,8 +64,6 @@ func parseGames(line string) int {
 		}
 	}
 
-	fmt.Printf("getting power for %s\n", line)
-	fmt.Println(currMaxDice)
 	product := getPower(currMaxDice)
 	return product
 }
