@@ -20,41 +20,34 @@ func getGameId(line string) int {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return id
 
 }
 
 func parseGames(line string) int {
 
-	mp := make(map[string]int)
-	//remote game id
-	//returns ["green 1, red 1; blue 5, green 5"]
+	//remove game id
 	gameArr := strings.Split(line, ":")
 	//Seperates rounds
-	//[["green 1, red 1"], ["blue 5, green 5"]]
 	roundArr := strings.Split(gameArr[1], ";")
 
 	for _, rnd := range roundArr {
 		clr := strings.Split(rnd, ",")
 
 		for _, i := range clr {
-
 			curr := strings.Split(i, " ")
-
 			numDice, err := strconv.Atoi(curr[1])
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			mp[curr[2]] += numDice
+			if numDice > max[curr[2]] {
+				return 0
+			}
 		}
 	}
 
-	for key, val := range mp {
-		if val > max[key] {
-			return 0
-		}
-	}
 	gameId := getGameId(line)
 	return gameId
 }
@@ -65,6 +58,7 @@ func main() {
 	 * 12 red, 13 green, 14 blue
 	 *
 	 */
+
 	file, err := os.Open("./day2.txt")
 	if err != nil {
 		log.Fatal(err)
