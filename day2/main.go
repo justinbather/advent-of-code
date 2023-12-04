@@ -25,16 +25,31 @@ func getGameId(line string) int {
 
 }
 
+func getPower(mp map[string]int) int {
+
+	var product int = 1
+	for _, val := range mp {
+
+		product = product * val
+
+	}
+
+	return product
+}
+
 func parseGames(line string) int {
 
+	currMaxDice := make(map[string]int)
 	//remove game id
 	gameArr := strings.Split(line, ":")
 	//Seperates rounds
 	roundArr := strings.Split(gameArr[1], ";")
 
+	//Each round
 	for _, rnd := range roundArr {
 		clr := strings.Split(rnd, ",")
 
+		//Key-value of each dice in round
 		for _, i := range clr {
 			curr := strings.Split(i, " ")
 			numDice, err := strconv.Atoi(curr[1])
@@ -42,14 +57,17 @@ func parseGames(line string) int {
 				log.Fatal(err)
 			}
 
-			if numDice > max[curr[2]] {
-				return 0
+			currMax := currMaxDice[curr[2]]
+			if numDice > currMax {
+				currMaxDice[curr[2]] = numDice
 			}
 		}
 	}
 
-	gameId := getGameId(line)
-	return gameId
+	fmt.Printf("getting power for %s\n", line)
+	fmt.Println(currMaxDice)
+	product := getPower(currMaxDice)
+	return product
 }
 
 func main() {
@@ -71,8 +89,8 @@ func main() {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		id := parseGames(line)
-		sum += id
+		power := parseGames(line)
+		sum += power
 	}
 
 	if scanner.Err(); err != nil {
