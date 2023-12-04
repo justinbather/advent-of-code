@@ -77,7 +77,8 @@ func findLastWord(line string) numItem {
 	var last numItem
 
 	for _, num := range keys {
-		numIdx := strings.Index(line, num)
+		numIdx := strings.LastIndex(line, num)
+		fmt.Printf("index: %d, num: %s\n", numIdx, num)
 		if numIdx != -1 {
 			if numIdx >= last.Idx {
 				last.Value = string(numMap[num])
@@ -122,6 +123,9 @@ func main() {
 		lastNum := findLast(line)
 		lastWord := findLastWord(line)
 
+		fmt.Println("last num - last word")
+		fmt.Println(lastNum, lastWord)
+
 		var last numItem
 		var first numItem
 
@@ -147,4 +151,5 @@ func main() {
 	}
 
 	fmt.Println("sum: ", sum)
+	fmt.Println(sum == 33)
 }
