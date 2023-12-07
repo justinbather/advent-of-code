@@ -58,7 +58,7 @@ func parseLine(line string, lineNum int) {
 			i += len(tempVal) - 1
 		} else {
 
-			if line[i] != '.' {
+			if line[i] == '*' {
 				tmp := string(line[i])
 				tempChar := specChar{Literal: tmp, Index: i, Line: lineNum}
 				specChars = append(specChars, tempChar)
@@ -97,6 +97,19 @@ func main() {
 
 	var sum int
 
+	type adj struct {
+		numAdj int
+		vals   []int
+		symbol specChar
+	}
+
+	type adjPair struct {
+		part    part
+		char    specChar
+		matched bool
+	}
+
+	adjPairs := []adjPair{}
 	for _, part := range partsFound {
 		for _, specChar := range specChars {
 			fmt.Println("comparing ", part, specChar)
@@ -104,7 +117,19 @@ func main() {
 				((specChar.Index+1) >= part.StartIdx && (specChar.Index-1) <= part.EndIdx) {
 				fmt.Println(part)
 
-				sum += part.Value
+				adjPairs = append(adjPairs, adjPair{part: part, char: specChar, matched: false})
+
+			}
+		}
+	}
+
+	for j, outerPair := range adjPairs {
+
+		for _, innerPair := range adjPairs[j+1:] {
+			if (innerPair.char == outerPair.char) && (innerPair.matched == false) && (outerPair.matched == false) {
+				sum += (innerPair.part.Value * outerPair.part.Value)
+				fmt.Println("Matched: ", outerPair.part.Value, innerPair.part.Value)
+				innerPair.matched = true
 			}
 		}
 	}
