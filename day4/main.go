@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var tickets map[int]int = make(map[int]int)
+
 func parseGame(line string) int {
 
 	var score int
@@ -18,32 +20,22 @@ func parseGame(line string) int {
 	winningNums := strings.Split(allNums[0], " ")
 
 	ticketNums := strings.Split(allNums[1], " ")
-	fmt.Println(len(ticketNums))
 
 	for _, winner := range winningNums {
 
 		for _, ticketNum := range ticketNums {
 			if winner == ticketNum && winner != " " && winner != "" {
-				fmt.Println(winner, ticketNum)
-				if score == 0 {
-					score = 1
-				} else {
-
-					fmt.Println(score)
-					score = score * 2
-					fmt.Println(score)
-				}
+				score++
 			}
 		}
 	}
-
-	fmt.Println(allNums, score)
 
 	return score
 }
 
 func main() {
 
+	var ticketNumber int
 	file, err := os.Open("./day4.txt")
 	if err != nil {
 		log.Fatal(err)
@@ -52,13 +44,24 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	var score int
 	for scanner.Scan() {
+		ticketNumber++
 		line := scanner.Text()
-		score += parseGame(line)
+		winningNums := parseGame(line)
+		tickets[ticketNumber] += 1
+		// give each ticket after current a copy for each winning num in current
+		for i := 1; i <= winningNums; i++ {
+			tickets[ticketNumber+i] += 1 * tickets[ticketNumber]
+		}
+
 	}
 
-	fmt.Println(score)
+	//Calculate sum
+	var sum int
+	for _, value := range tickets {
+		sum += value
+	}
+	fmt.Println(sum)
 
 	if scanner.Err(); err != nil {
 		log.Fatal(err)
