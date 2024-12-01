@@ -1,5 +1,6 @@
 use core::panic;
 use std::{
+    cmp::{max, min},
     fs::File,
     io::{BufRead, BufReader},
 };
@@ -41,15 +42,9 @@ fn main() {
     let mut total_dist: i32 = 0;
 
     for (idx, l) in left.iter().enumerate() {
-        if l > &right[idx] {
-            // println!("Adding {l} - {} = {}", &right[idx], l - &right[idx]);
-            total_dist += l - &right[idx]
-        } else if l < &right[idx] {
-            // println!("Adding {} - {l} = {}", &right[idx], &right[idx] - l);
-            total_dist += &right[idx] - l
-        } else {
-            continue;
-        }
+        let min = min(l, &right[idx]);
+        let max = max(l, &right[idx]);
+        total_dist += max - min
     }
 
     println!("The total distance is: {total_dist}");
