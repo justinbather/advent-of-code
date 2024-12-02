@@ -1,5 +1,3 @@
-pub mod day1;
-
 use core::panic;
 use std::{
     cmp::{max, min},
