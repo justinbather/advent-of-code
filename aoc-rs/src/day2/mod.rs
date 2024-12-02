@@ -2,6 +2,9 @@ use std::io::BufRead;
 
 use aoc_rs::read_file;
 
+// first iteration on part 2 completed in 375 microsecs, brute forces the dampener by trying all
+// possiblities
+
 pub fn run() {
     let f = read_file("src/day2/input.txt");
 
@@ -10,9 +13,9 @@ pub fn run() {
     for line in f.lines() {
         let line = line.unwrap();
 
-        let line = parse_line(line);
+        let report = parse_line(line);
 
-        if is_valid_report(line) {
+        if parse_report(report) {
             num_safe += 1;
         }
     }
@@ -20,17 +23,16 @@ pub fn run() {
     println!("{num_safe} reports are safe");
 }
 
-fn is_valid_report(numbers: Vec<i32>) -> bool {
-    // Check if the line is already valid
-    if levels_valid(&numbers) {
+fn parse_report(numbers: Vec<i32>) -> bool {
+    if parse_levels(&numbers) {
         return true;
     }
 
-    // Try removing each element and check if the sequence becomes valid
+    // retry k times
     for i in 0..numbers.len() {
         let mut temp = numbers.clone();
         temp.remove(i);
-        if levels_valid(&temp) {
+        if parse_levels(&temp) {
             return true;
         }
     }
@@ -38,7 +40,7 @@ fn is_valid_report(numbers: Vec<i32>) -> bool {
     false
 }
 
-fn levels_valid(numbers: &[i32]) -> bool {
+fn parse_levels(numbers: &[i32]) -> bool {
     if numbers.len() < 2 {
         return true;
     }
@@ -60,6 +62,7 @@ fn levels_valid(numbers: &[i32]) -> bool {
 
     increasing || decreasing
 }
+
 fn parse_line(line: String) -> Vec<i32> {
     let mut report: Vec<i32> = Vec::new();
 
