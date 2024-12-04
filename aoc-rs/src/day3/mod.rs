@@ -23,7 +23,6 @@ pub fn run() {
     let mut sum = 0;
     for result in results {
         let (i, j) = result;
-        println!("{i} x {j}");
         sum += i * j;
     }
 
