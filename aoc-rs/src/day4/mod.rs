@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     io::{BufRead, BufReader},
     isize, usize,
 };
@@ -7,38 +8,34 @@ pub fn run() {
     let buffers = split_all(f);
 
     let mut found = 0;
+    let mut mp: HashMap<(isize, isize), i32> = HashMap::new();
 
     for (row, buffer) in buffers.iter().enumerate() {
         for (col, char) in buffer.iter().enumerate() {
-            if char == "X" {
+            if char == "M" {
                 //println!("Found X: line {}, col {}", row, col);
-                let m_results = search_around(&buffers, "M", row, col);
-                if !m_results.is_empty() {
-                    for result in m_results.iter() {
-                        let (_, m_dir, m_row, m_col) = result;
+                let a_results = search_around(&buffers, "A", row, col);
+                if !a_results.is_empty() {
+                    for result in a_results.iter() {
+                        let (_, a_dir, a_row, a_col) = result;
 
-                        let a_results = search_around(
+                        let s_results = search_around(
                             &buffers,
-                            "A",
-                            m_row.clone() as usize,
-                            m_col.clone() as usize,
+                            "S",
+                            a_row.clone() as usize,
+                            a_col.clone() as usize,
                         );
-                        for a_result in a_results.iter() {
-                            let (_, a_dir, a_row, a_col) = a_result;
+                        for s_result in s_results.iter() {
+                            let (_, s_dir, _, _) = s_result;
 
-                            let s_results = search_around(
-                                &buffers,
-                                "S",
-                                a_row.clone() as usize,
-                                a_col.clone() as usize,
-                            );
-                            for s_result in s_results.iter() {
-                                let (_, s_dir, s_row, s_col) = s_result;
+                            if *s_dir == *a_dir {
+                                println!("Found MAS, a at line:{a_row} col:{a_col}");
+                                let exists = mp.get(&(*a_row, *a_col));
 
-                                if *s_dir == *a_dir && *a_dir == *m_dir {
-                                    found += 1;
-                                    //println!("Found XMAS, {row}{col} - {m_row}{m_col} - {a_row}{a_col} - {s_row}{s_col}")
-                                }
+                                match exists {
+                                    Some(v) => mp.insert((*a_row, *a_col), *v + 1),
+                                    None => mp.insert((*a_row, *a_col), 1),
+                                };
                             }
                         }
                     }
@@ -46,7 +43,11 @@ pub fn run() {
             }
         }
     }
-
+    for value in mp.into_values() {
+        if value == 2 {
+            found += 1;
+        }
+    }
     println!("Found: {found}");
 }
 
@@ -67,10 +68,10 @@ fn search_around(
     col: usize,
 ) -> Vec<(String, Direction, isize, isize)> {
     let directions = [
-        (-1, 0),  // Up
-        (1, 0),   // Down
-        (0, -1),  // Left
-        (0, 1),   // Right
+        //(-1, 0),  // Up
+        //(1, 0),   // Down
+        //(0, -1),  // Left
+        //(0, 1),   // Right
         (-1, -1), // Top-left diagonal
         (-1, 1),  // Top-right diagonal
         (1, -1),  // Bottom-left diagonal
