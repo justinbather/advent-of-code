@@ -11,8 +11,8 @@ fn main() {
     //day2::run();
     //day3::run();
     //day4::run();
-    //let now = Instant::now();
+    let now = Instant::now();
     day5::run();
-    //let elapsed = now.elapsed();
-    //println!("Elapsed: {:.2?}", elapsed);
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
 }
