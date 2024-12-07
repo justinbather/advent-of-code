@@ -2,7 +2,7 @@ use std::{
     collections::HashMap,
     fs::File,
     io::{BufRead, BufReader},
-    usize,
+    isize, usize,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -15,6 +15,7 @@ enum Direction {
 
 struct Guard {
     stored_positions: HashMap<(isize, isize), Direction>,
+    starting_position: (isize, isize),
     position: (isize, isize),
     direction: Direction,
 }
@@ -25,6 +26,7 @@ impl Guard {
         map.insert((row, col), Direction::Up);
         Guard {
             position: (row, col),
+            starting_position: (row, col),
             stored_positions: map,
             direction: Direction::Up,
         }
@@ -99,30 +101,73 @@ impl Guard {
         }
     }
 
-    fn unique_positions(&self) -> usize {
-        self.stored_positions.len()
+    fn unique_positions(&self) -> HashMap<(isize, isize), Direction> {
+        self.stored_positions.clone()
     }
 }
 
 pub fn run() {
     let f = aoc::read_file("src/day6/input.txt");
 
-    // read in
-    // will have a 2d vec of strings
     let grid = read_grid(f);
-    let unique_positions = part1(&grid);
-    println!("{unique_positions} unique positions");
+    //let unique_positions = part1(&grid);
+    //println!("{unique_positions} unique positions");
+
+    let num_obstacles = part2(&grid);
+    println!("Can place {num_obstacles} unique obstacles to cause inifinite loops")
 }
 
 fn part2(grid: &Vec<Vec<String>>) -> i32 {
-    // idk bro wtf
-    //
-    0
+    // brute force it
+    // run through part 1, getting all locations the guard visits
+    // with the positions we can iterate over them
+    // for each position, try adding an obstacle in that position and play it through
+    // if it returns, we know it didnt work
+    // if it gets stuck in a loop, it did. add one to the sum, and keep going
+
+    //6,3
+
+    let mut guard = init(&grid).expect("Couldnt find guard");
+    let (start_row, start_col) = guard.starting_position;
+
+    play(&mut guard, &grid, 100);
+    let binding = guard.unique_positions();
+    let mut num_loops = 0;
+
+    let positions: Vec<&(isize, isize)> = binding.keys().collect();
+    for (row, col) in positions.iter() {
+        if *row == start_row && *col == start_col {
+            continue;
+        }
+
+        let mut new_grid = grid.clone();
+        new_grid[*row as usize][*col as usize] = String::from("#");
+
+        let mut new_guard = init(&new_grid).expect("Couldnt find guard");
+        let is_loop = play(&mut new_guard, &new_grid, 1000000);
+        if is_loop {
+            println!("Loop caused by adding at row: {row} col: {col}");
+            num_loops += 1;
+        }
+    }
+    num_loops
 }
 
 fn part1(grid: &Vec<Vec<String>>) -> usize {
     let mut guard = init(&grid).expect("Couldnt find guard");
 
+    play(&mut guard, grid, 100);
+
+    guard.unique_positions().len()
+}
+
+fn play(guard: &mut Guard, grid: &Vec<Vec<String>>, max: i32) -> bool {
+    // this counter is totally not great, just using it as a rough mean to exit with a value and
+    // "prove" we in an infinite loop
+    //
+    // // would probably be better to just check if we turned at the same place in the past,
+    // fugazie fugazie
+    let mut counter = 0;
     loop {
         let (next_row, next_col) = guard.peek();
         // check bounds
@@ -134,8 +179,8 @@ fn part1(grid: &Vec<Vec<String>>) -> usize {
             if (cur_row == 0 || cur_row as usize == grid.len() - 1)
                 || (cur_col == 0 || cur_col as usize == grid[0].len() - 1)
             {
-                println!("Found the exit at row: {cur_row} col {cur_col}");
-                break;
+                //println!("Found the exit at row: {cur_row} col {cur_col}");
+                return false;
             }
 
             let next_char = &grid[next_row as usize][next_col as usize];
@@ -146,17 +191,21 @@ fn part1(grid: &Vec<Vec<String>>) -> usize {
                 guard.walk();
             }
         } else {
-            break;
+            return false;
+        }
+
+        counter += 1;
+
+        if counter == max {
+            return true;
         }
     }
-
-    guard.unique_positions()
 }
 
 fn init(grid: &Vec<Vec<String>>) -> Option<Guard> {
     for (row_num, row) in grid.iter().enumerate() {
         for (col_num, char) in row.iter().enumerate() {
-            if char != "#" && char != "." {
+            if char == "^" {
                 return Some(Guard::new(row_num as isize, col_num as isize));
             }
         }
