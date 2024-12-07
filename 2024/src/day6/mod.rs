@@ -15,7 +15,6 @@ enum Direction {
 
 struct Guard {
     stored_positions: HashMap<(isize, isize), Direction>,
-    starting_position: (isize, isize),
     position: (isize, isize),
     direction: Direction,
 }
@@ -26,7 +25,6 @@ impl Guard {
         map.insert((row, col), Direction::Up);
         Guard {
             position: (row, col),
-            starting_position: (row, col),
             stored_positions: map,
             direction: Direction::Up,
         }
@@ -110,8 +108,8 @@ pub fn run() {
     let f = aoc::read_file("src/day6/input.txt");
 
     let grid = read_grid(f);
-    //let unique_positions = part1(&grid);
-    //println!("{unique_positions} unique positions");
+    let unique_positions = part1(&grid);
+    println!("{unique_positions} unique positions");
 
     let num_obstacles = part2(&grid);
     println!("Can place {num_obstacles} unique obstacles to cause inifinite loops")
@@ -128,35 +126,37 @@ fn part2(grid: &Vec<Vec<String>>) -> i32 {
     //6,3
 
     let mut guard = init(&grid).expect("Couldnt find guard");
-    let (start_row, start_col) = guard.starting_position;
 
-    play(&mut guard, &grid, 100);
-    let binding = guard.unique_positions();
     let mut num_loops = 0;
 
-    let positions: Vec<&(isize, isize)> = binding.keys().collect();
-    for (row, col) in positions.iter() {
-        if *row == start_row && *col == start_col {
-            continue;
-        }
+    // play through to populate "walked path" map
+    play(&mut guard, &grid, 100);
 
+    let binding = guard.unique_positions();
+    let positions: Vec<&(isize, isize)> = binding.keys().collect();
+
+    // we only care about positions the guard can move, so iterate over them and try placing a
+    // block in each place uniquely
+    for (row, col) in positions.iter() {
         let mut new_grid = grid.clone();
+        let mut new_guard = init(&new_grid).expect("Couldnt find guard");
+
         new_grid[*row as usize][*col as usize] = String::from("#");
 
-        let mut new_guard = init(&new_grid).expect("Couldnt find guard");
-        let is_loop = play(&mut new_guard, &new_grid, 1000000);
+        let is_loop = play(&mut new_guard, &new_grid, 10000000);
         if is_loop {
             println!("Loop caused by adding at row: {row} col: {col}");
             num_loops += 1;
         }
     }
+
     num_loops
 }
 
 fn part1(grid: &Vec<Vec<String>>) -> usize {
     let mut guard = init(&grid).expect("Couldnt find guard");
 
-    play(&mut guard, grid, 100);
+    play(&mut guard, grid, 10000001);
 
     guard.unique_positions().len()
 }
