@@ -1,3 +1,4 @@
+#![allow(unused)]
 // first iteration on part 2 completed in 375 microsecs, brute forces the dampener by trying all
 // possiblities
 

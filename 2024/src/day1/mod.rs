@@ -1,3 +1,4 @@
+#![allow(unused)]
 use core::panic;
 use std::{
     cmp::{max, min},
