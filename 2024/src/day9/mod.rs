@@ -2,6 +2,7 @@
 use std::{
     fs::File,
     io::{BufReader, Read},
+    iter::StepBy,
 };
 
 #[allow(unused)]
@@ -36,6 +37,14 @@ fn part2(diskmap: &Vec<i32>) -> u64 {
     println!("Blocks: ");
     println!("{:?}", blocks);
 
+    let blocks = compress2(&mut blocks);
+    let mut s = String::new();
+    for block in blocks.iter() {
+        s += &block.to_string();
+    }
+
+    println!("Compresed Blocks: {s}");
+    println!("{:?}", blocks);
     0
 }
 
@@ -52,29 +61,43 @@ fn get_checksum(blocks: Vec<Option<i32>>) -> u64 {
 }
 
 // Sorts (compresses) a block vector, in place
-fn compress2(blocks: &mut Vec<Block>) {
-    let mut close: usize = 0;
-    let mut far: usize = blocks.len() - 1;
+fn compress2(blocks: &mut Vec<Block>) -> Vec<Block> {
+    // start from end, then look for the first space itll fit
 
-    while close <= far {
-        // get an empty block in close pointer, a file block in far pointer
-        match blocks[close] {
-            Block::File(_, _) => todo!(),
-            Block::Empty(_) => todo!(),
+    let mut new_blocks: Vec<Block> = blocks.clone();
+
+    //iterate backwards
+    for (idx, block) in blocks.iter().rev().enumerate() {
+        match block {
+            Block::File(outer_id, outer_size) => {
+                for (inner_idx, inner_block) in blocks.iter().enumerate() {
+                    match inner_block {
+                        Block::File(_, _) => continue,
+                        Block::Empty(size) => {
+                            if size >= outer_size {
+                                //we can swap these two
+                                // if they are equal we just swap
+                                // if size is bigger than file, we need to get the difference and
+                                // insert it after the file
+
+                                if size == outer_size {
+                                    //clean swap
+                                    new_blocks.swap(idx, inner_idx);
+                                } else {
+                                    // space is bigger than file
+                                    let remainder = size - outer_size;
+                                    new_blocks[inner_idx] = *block;
+                                    new_blocks.insert(inner_idx + 1, Block::Empty(remainder));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Block::Empty(_) => continue,
         }
-
-        match blocks[far] {
-            Block::File(_, _) => todo!(),
-            Block::Empty(_) => todo!(),
-        }
-
-        //if we made it here, we have a empty spot in the close, and a file block in the far, meaning
-        //we can safely swap and move the pointers in
-
-        blocks.swap(close, far);
-        close += 1;
-        far -= 1;
     }
+    new_blocks
 }
 
 // Sorts (compresses) a block vector, in place
