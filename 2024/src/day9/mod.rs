@@ -6,7 +6,7 @@ use std::{
 
 #[allow(unused)]
 pub fn run() {
-    let mut reader = aoc::read_file("src/day9/input-test.txt");
+    let mut reader = aoc::read_file("src/day9/input.txt");
     let diskmap = read_into_diskmap(&mut reader);
     println!("Diskmap: {:?}", diskmap);
 
@@ -45,12 +45,11 @@ fn compress(blocks: &Vec<Block>) -> String {
     let mut blocks: Vec<char> = blocks_to_string(blocks).chars().collect();
     let mut close: usize = 0;
     let mut far: usize = blocks.len() - 1;
-    while close < far {
+    while close <= far {
+        // get an empty block in close pointer, a file block in far pointer
         match blocks[close] {
-            // if its an empty spot, do nothing
             '.' => {}
             _ => {
-                //close ++ and skip
                 close += 1;
                 continue;
             }

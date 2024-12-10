@@ -117,15 +117,6 @@ pub fn run() {
 }
 
 fn part2(grid: &Vec<Vec<String>>) -> i32 {
-    // brute force it
-    // run through part 1, getting all locations the guard visits
-    // with the positions we can iterate over them
-    // for each position, try adding an obstacle in that position and play it through
-    // if it returns, we know it didnt work
-    // if it gets stuck in a loop, it did. add one to the sum, and keep going
-
-    //6,3
-
     let mut guard = init(&grid).expect("Couldnt find guard");
 
     let mut num_loops = 0;
@@ -166,7 +157,7 @@ fn play(guard: &mut Guard, grid: &Vec<Vec<String>>, max: i32) -> bool {
     // this counter is totally not great, just using it as a rough mean to exit with a value and
     // "prove" we in an infinite loop
     //
-    // // would probably be better to just check if we turned at the same place in the past,
+    // would probably be better to just check if we turned at the same place in the past,
     // fugazie fugazie
     let mut counter = 0;
     loop {
@@ -176,11 +167,11 @@ fn play(guard: &mut Guard, grid: &Vec<Vec<String>>, max: i32) -> bool {
             && (next_col >= 0 && next_col <= grid[0].len() as isize)
         {
             let (cur_row, cur_col) = guard.position;
-            // at exit?
+            // at exit/edge?
             if (cur_row == 0 || cur_row as usize == grid.len() - 1)
                 || (cur_col == 0 || cur_col as usize == grid[0].len() - 1)
             {
-                //println!("Found the exit at row: {cur_row} col {cur_col}");
+                // Found Exit
                 return false;
             }
 
@@ -203,6 +194,7 @@ fn play(guard: &mut Guard, grid: &Vec<Vec<String>>, max: i32) -> bool {
     }
 }
 
+// Initializes a Guard given a grid. Returns None if no Guard is found
 fn init(grid: &Vec<Vec<String>>) -> Option<Guard> {
     for (row_num, row) in grid.iter().enumerate() {
         for (col_num, char) in row.iter().enumerate() {
