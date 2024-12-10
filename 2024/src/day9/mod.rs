@@ -6,61 +6,66 @@ use std::{
 
 #[allow(unused)]
 pub fn run() {
-    let mut reader = aoc::read_file("src/day9/input.txt");
+    let mut reader = aoc::read_file("src/day9/input-test.txt");
     let diskmap = read_into_diskmap(&mut reader);
-    println!("Diskmap: {:?}", diskmap);
 
-    let checksum = part1(diskmap);
-    println!("Checksum: {checksum}")
+    let _p1_checksum = part1(&diskmap);
+    // println!("Checksum: {p1_checksum}");
+
+    println!("Diskmap:\n{:?}", diskmap);
+    let p2_checksum = part2(&diskmap);
+    println!("Checksum p2: {p2_checksum}")
 }
 
-fn part1(diskmap: Vec<i32>) -> u64 {
-    let mut blocks = parse_blocks(diskmap);
+fn part1(diskmap: &Vec<i32>) -> u64 {
+    // parse diskmap into a vec of optional i32's
+    // for map 123 we get:
+    // [Some(0), None, None, Some(1), Some(1), Some(1)]
+    // The optional holds the id of the file block, and there are n file blocks of the same id &&
+    // n == size of the file block
+    let mut blocks = diskmap_to_optionals(&diskmap);
 
-    let compressed = compress(&mut blocks);
-    println!("Compressed\n{compressed}\n");
+    compress1(&mut blocks);
 
-    let checksum = get_checksum(compressed);
-
+    let checksum = get_checksum(blocks);
     checksum
 }
 
-fn get_checksum(input: String) -> u64 {
-    let blocks: Vec<u64> = input
-        .chars()
-        .filter_map(|c| c.to_digit(10)) // Convert to digit if possible, could be a '.'
-        .map(|d| d as u64)
-        .collect();
+fn part2(diskmap: &Vec<i32>) -> u64 {
+    let mut blocks = diskmap_to_blocks(&diskmap);
+    println!("Blocks: ");
+    println!("{:?}", blocks);
 
+    0
+}
+
+fn get_checksum(blocks: Vec<Option<i32>>) -> u64 {
     let mut checksum: u64 = 0;
-    for (position, id) in blocks.iter().enumerate() {
-        checksum += position as u64 * id;
+    for (idx, block) in blocks.iter().enumerate() {
+        match block {
+            Some(val) => checksum += idx as u64 * *val as u64,
+            None => {}
+        }
     }
 
     checksum
 }
 
 // Sorts (compresses) a block vector, in place
-fn compress(blocks: &Vec<Block>) -> String {
-    let mut blocks: Vec<char> = blocks_to_string(blocks).chars().collect();
+fn compress2(blocks: &mut Vec<Block>) {
     let mut close: usize = 0;
     let mut far: usize = blocks.len() - 1;
+
     while close <= far {
         // get an empty block in close pointer, a file block in far pointer
         match blocks[close] {
-            '.' => {}
-            _ => {
-                close += 1;
-                continue;
-            }
+            Block::File(_, _) => todo!(),
+            Block::Empty(_) => todo!(),
         }
 
         match blocks[far] {
-            '.' => {
-                far -= 1;
-                continue;
-            }
-            _ => {}
+            Block::File(_, _) => todo!(),
+            Block::Empty(_) => todo!(),
         }
 
         //if we made it here, we have a empty spot in the close, and a file block in the far, meaning
@@ -70,11 +75,41 @@ fn compress(blocks: &Vec<Block>) -> String {
         close += 1;
         far -= 1;
     }
-
-    return blocks.iter().collect();
 }
 
-fn parse_blocks(diskmap: Vec<i32>) -> Vec<Block> {
+// Sorts (compresses) a block vector, in place
+fn compress1(blocks: &mut Vec<Option<i32>>) {
+    let mut close: usize = 0;
+    let mut far: usize = blocks.len() - 1;
+
+    while close <= far {
+        // get an empty block in close pointer, a file block in far pointer
+        match blocks[close] {
+            Some(_) => {
+                close += 1;
+                continue;
+            }
+            None => {}
+        }
+
+        match blocks[far] {
+            Some(_) => {}
+            None => {
+                far -= 1;
+                continue;
+            }
+        }
+
+        //if we made it here, we have a empty spot in the close, and a file block in the far, meaning
+        //we can safely swap and move the pointers in
+
+        blocks.swap(close, far);
+        close += 1;
+        far -= 1;
+    }
+}
+
+fn diskmap_to_blocks(diskmap: &Vec<i32>) -> Vec<Block> {
     let mut blocks: Vec<Block> = Vec::new();
 
     // flag to know what kind of block we are parsing
@@ -83,11 +118,38 @@ fn parse_blocks(diskmap: Vec<i32>) -> Vec<Block> {
     let mut curr_id = 0;
     for val in diskmap.iter() {
         if is_file_block {
-            blocks.push(Block::File(curr_id, *val as usize));
+            blocks.push(Block::File(curr_id, *val));
             curr_id += 1;
         } else {
             if *val > 0 {
-                blocks.push(Block::Empty(*val as usize));
+                blocks.push(Block::Empty(*val));
+            }
+        }
+
+        is_file_block = !is_file_block
+    }
+
+    blocks
+}
+
+fn diskmap_to_optionals(diskmap: &Vec<i32>) -> Vec<Option<i32>> {
+    let mut blocks: Vec<Option<i32>> = Vec::new();
+
+    // flag to know what kind of block we are parsing
+    let mut is_file_block = true;
+
+    let mut curr_id = 0;
+    for val in diskmap.iter() {
+        if is_file_block {
+            for _ in 0..*val {
+                blocks.push(Some(curr_id));
+            }
+            curr_id += 1;
+        } else {
+            if *val > 0 {
+                for _ in 0..*val {
+                    blocks.push(None);
+                }
             }
         }
 
@@ -109,22 +171,15 @@ fn read_into_diskmap(reader: &mut BufReader<File>) -> Vec<i32> {
         .collect();
 }
 
-fn blocks_to_string(blocks: &Vec<Block>) -> String {
-    let mut s = String::new();
-    for block in blocks.iter() {
-        s += &block.to_string();
-    }
-
-    s
-}
-
 //A block can either have a file or represent empty space
 //Block::File(i32, usize) will contain the file ID, and its size
 //Block::Empty(usize) will contain its size
 #[derive(Debug, Clone, Copy)]
 enum Block {
-    File(i32, usize),
-    Empty(usize),
+    // id, size
+    File(i32, i32),
+    // size
+    Empty(i32),
 }
 
 impl Block {
