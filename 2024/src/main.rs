@@ -2,6 +2,7 @@
 use std::time::Instant;
 
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -20,8 +21,9 @@ fn main() {
     //day6::run();
     //day7::run(); PART 2 TODO
     //day8::run(); PART 1&2 TODO
+    //day9::run();
     //let now = Instant::now();
-    day9::run();
+    day10::run();
     //let elapsed = now.elapsed();
     //println!("Elapsed: {:.2?}", elapsed);
 }
