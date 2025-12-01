@@ -1,36 +1,40 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
+
+	"github.com/justinbather/advent-of-code/2025/internal"
+)
+
+const (
+	LEFT  = "L"
+	RIGHT = "R"
 )
 
 func main() {
-
-	f, err := os.Open("input.txt")
+	var (
+		curr     = 50
+		numZeros = 0
+	)
+	scanner, err := internal.NewScanner("input.txt")
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
 
-	scanner := bufio.NewScanner(f)
-
-	curr := 50
-	numZeros := 0
+	defer scanner.Close()
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) > 0 {
-			dir := line[0]
-			numStr := strings.TrimLeft(line, "LR")
-			dist, err := strconv.Atoi(numStr)
+
+			dir, dist, err := parseLine(line)
 			if err != nil {
 				panic(err)
 			}
-			if dir == 'L' { //Left
+
+			if dir == LEFT {
 				curr = curr - dist
 				for {
 					if curr >= 0 {
@@ -41,7 +45,7 @@ func main() {
 						curr = curr + 100
 					}
 				}
-			} else { // Right
+			} else {
 				curr = curr + dist
 				for {
 					if curr <= 99 {
@@ -55,7 +59,6 @@ func main() {
 			}
 
 			if curr == 0 {
-				fmt.Printf("%s to point at 0\n", line)
 				numZeros++
 			}
 		}
@@ -67,4 +70,12 @@ func main() {
 
 	fmt.Println(numZeros)
 
+}
+
+func parseLine(line string) (dir string, dist int, err error) {
+	dir = string(line[0])
+	numStr := strings.TrimLeft(line, "LR")
+	dist, err = strconv.Atoi(numStr)
+
+	return dir, dist, err
 }
