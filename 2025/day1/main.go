@@ -8,59 +8,35 @@ import (
 	"github.com/justinbather/advent-of-code/2025/internal"
 )
 
+// 27** too low
+// 5956 too high
+// 5934 too high
+
 const (
 	LEFT  = "L"
 	RIGHT = "R"
 )
 
 func main() {
-	var (
-		curr     = 50
-		numZeros = 0
-	)
-	scanner, err := internal.NewScanner("input.txt")
+	scanner, err := internal.NewScanner("test-input.txt")
 	if err != nil {
 		panic(err)
 	}
 
 	defer scanner.Close()
 
+	counter := counter{state: 50}
+
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) > 0 {
 
-			dir, dist, err := parseLine(line)
+			cmd, err := parseLine(line)
 			if err != nil {
 				panic(err)
 			}
 
-			if dir == LEFT {
-				curr = curr - dist
-				for {
-					if curr >= 0 {
-						break
-					}
-
-					if curr < 0 {
-						curr = curr + 100
-					}
-				}
-			} else {
-				curr = curr + dist
-				for {
-					if curr <= 99 {
-						break
-					}
-
-					if curr > 99 {
-						curr = curr - 100
-					}
-				}
-			}
-
-			if curr == 0 {
-				numZeros++
-			}
+			counter.update(cmd)
 		}
 	}
 
@@ -68,14 +44,57 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(numZeros)
-
+	fmt.Printf("FINAL %d\n", counter.state)
+	fmt.Println(counter.passedZero)
 }
 
-func parseLine(line string) (dir string, dist int, err error) {
-	dir = string(line[0])
+func parseLine(line string) (command, error) {
+	dir := string(line[0])
 	numStr := strings.TrimLeft(line, "LR")
-	dist, err = strconv.Atoi(numStr)
+	dist, err := strconv.Atoi(numStr)
 
-	return dir, dist, err
+	return command{dir: dir, dist: dist}, err
+}
+
+type command struct {
+	dir  string
+	dist int
+}
+
+type counter struct {
+	state      int
+	passedZero int
+}
+
+func (c *counter) update(cmd command) {
+	switch cmd.dir {
+	case LEFT:
+		for i := range cmd.dist {
+			if i == 0 && c.state == 0 {
+				c.state = 99
+				continue
+			}
+
+			if c.state == 0 {
+				c.state = 99
+				c.passedZero++
+			} else {
+				c.state--
+			}
+		}
+
+	default:
+		for i := range cmd.dist {
+			if i == 0 && c.state == 0 {
+				c.state++
+				continue
+			}
+			if c.state == 99 {
+				c.state = 0
+				c.passedZero++
+			} else {
+				c.state++
+			}
+		}
+	}
 }
