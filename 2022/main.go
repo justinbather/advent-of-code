@@ -1,84 +1,43 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"slices"
-	"strconv"
+
+	"github.com/justinbather/aoc/2022/day1"
+	"github.com/spf13/cobra"
 )
 
-type Elf struct {
-	Index int
-	Cals  int
+type day struct {
+	name string
+	run  func(test bool)
 }
 
-func NewElf(index int, cals int) Elf {
-	return Elf{index, cals}
+var days = []day{
+	{name: "day1", run: day1.Run},
 }
 
 func main() {
-	day1()
-}
-
-func day1() {
-	/*
-		input:
-		1000
-		2000
-		3000
-
-		4000
-
-		5000
-		6000
-
-		7000
-		8000
-		9000
-
-		10000
-	*/
-
-	f, err := os.Open("input.txt")
-	if err != nil {
-		panic(err)
+	root := &cobra.Command{
+		Use:   "aoc",
+		Short: "Advent of Code 2022",
 	}
 
-	defer f.Close()
-
-	s := bufio.NewScanner(f)
-
-	elves := []Elf{}
-
-	currElfCals := 0
-
-	for s.Scan() {
-		line := s.Text()
-		if len(line) == 0 {
-			elves = append(elves, NewElf(len(elves), currElfCals))
-			currElfCals = 0
-			continue
+	for _, d := range days {
+		var test bool
+		cmd := &cobra.Command{
+			Use:   d.name,
+			Short: fmt.Sprintf("Run %s", d.name),
+			Run: func(cmd *cobra.Command, args []string) {
+				d.run(test)
+			},
 		}
-
-		cals, _ := strconv.Atoi(line)
-		currElfCals += cals
+		cmd.Flags().BoolVar(&test, "test", false, "use input-test.txt")
+		root.AddCommand(cmd)
 	}
 
-	// last elf
-	elves = append(elves, NewElf(len(elves), currElfCals))
-
-	slices.SortFunc(elves, func(a, b Elf) int {
-		return a.Cals - b.Cals
-	})
-
-	fmt.Println(elves)
-
-	sum := 0
-	for _, elf := range elves[len(elves)-3:] {
-		sum += elf.Cals
+	if err := root.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
-
-	fmt.Printf("sum is %d", sum)
-
 }
