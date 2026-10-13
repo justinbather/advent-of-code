@@ -23,25 +23,9 @@ func Run(test bool) {
 		inputFile = "input-test.txt"
 	}
 
-	/*
-		input:
-		1000
-		2000
-		3000
+	path := "inputs/day1/" + inputFile
 
-		4000
-
-		5000
-		6000
-
-		7000
-		8000
-		9000
-
-		10000
-	*/
-
-	f, err := os.Open(inputFile)
+	f, err := os.Open(path)
 
 	if err != nil {
 		panic(err)
@@ -74,12 +58,10 @@ func Run(test bool) {
 		return a.Cals - b.Cals
 	})
 
-	fmt.Println(elves)
-
 	sum := 0
 	for _, elf := range elves[len(elves)-3:] {
 		sum += elf.Cals
 	}
 
-	fmt.Printf("sum is %d", sum)
+	fmt.Printf("sum is %d\n", sum)
 }
