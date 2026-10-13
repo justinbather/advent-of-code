@@ -29,49 +29,54 @@ func Run(test bool) {
 
 	s := bufio.NewScanner(f)
 
-	common := []rune{}
-
-	for s.Scan() {
-		line := s.Text()
-
-		freqFirst := make(map[rune]int)
-		firstHalf := line[:len(line)/2]
-		for _, char := range firstHalf {
-			_, ok := freqFirst[char]
-			if !ok {
-				freqFirst[char] = 1
-			} else {
-				freqFirst[char]++
-			}
-		}
-
-		freqSec := make(map[rune]int)
-		secondHalf := line[len(line)/2:]
-		for _, char := range secondHalf {
-			_, ok := freqSec[char]
-			if !ok {
-				freqSec[char] = 1
-			} else {
-				freqSec[char]++
-			}
-		}
-
-		for k := range freqFirst {
-			_, ok := freqSec[k]
-			if !ok {
-				continue
-			} else {
-				common = append(common, k)
-			}
-		}
-	}
+	curr := 0
+	buffer := []string{}
 
 	sum := 0
-	for _, val := range common {
-		sum += priority[val]
+	for s.Scan() {
+		curr++
+
+		if curr <= 3 {
+			line := s.Text()
+			buffer = append(buffer, line)
+		}
+
+		if curr == 3 {
+			badge, err := findBadge(buffer)
+			if err != nil {
+				panic(err)
+			}
+			sum += priority[badge]
+			curr = 0
+			buffer = []string{}
+			continue
+		}
 	}
 
-	fmt.Printf("total priority is %d\n", sum)
+	fmt.Printf("sum of priority %d\n", sum)
+
+}
+
+func findBadge(rucks []string) (rune, error) {
+	seen := make(map[rune]struct{})
+	for _, r := range rucks[0] {
+		seen[r] = struct{}{}
+	}
+
+	inBoth := make(map[rune]struct{})
+	for _, r := range rucks[1] {
+		if _, ok := seen[r]; ok {
+			inBoth[r] = struct{}{}
+		}
+	}
+
+	for _, r := range rucks[2] {
+		if _, ok := inBoth[r]; ok {
+			return r, nil
+		}
+	}
+
+	return 0, fmt.Errorf("badge not found in %v", rucks)
 }
 
 func open(path string) *os.File {
