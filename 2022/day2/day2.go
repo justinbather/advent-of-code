@@ -18,13 +18,13 @@ const LOSE int = 0
 func mapInput(input string) int {
 	mp := map[string]int{
 		"A": ROCK,
-		"X": ROCK,
+		"X": LOSE,
 
 		"B": PAPER,
-		"Y": PAPER,
+		"Y": TIE,
 
 		"C": SCISSORS,
-		"Z": SCISSORS,
+		"Z": WIN,
 	}
 
 	return mp[input]
@@ -65,43 +65,41 @@ func solve(s *bufio.Scanner) {
 // P2 can be oneof: X, Y, Z
 // returns P2 score
 
-func calculateRoundWon(p1, p2 int) int {
-	switch p2 {
+func calculateRound(p1, result int) int {
+	switch p1 {
 	case ROCK:
-		if p1 == ROCK {
-			return TIE
+		if result == WIN {
+			return PAPER
 		}
-		if p1 == PAPER {
-			return LOSE
+		if result == LOSE {
+			return SCISSORS
 		}
 
-		if p1 == SCISSORS {
-			return WIN
+		if result == TIE {
+			return ROCK
 		}
 
 	case PAPER:
-
-		if p1 == ROCK {
-			return WIN
+		if result == WIN {
+			return SCISSORS
 		}
-		if p1 == PAPER {
-			return TIE
+		if result == LOSE {
+			return ROCK
 		}
 
-		if p1 == SCISSORS {
-			return LOSE
+		if result == TIE {
+			return PAPER
 		}
 	case SCISSORS:
-
-		if p1 == ROCK {
-			return LOSE
+		if result == WIN {
+			return ROCK
 		}
-		if p1 == PAPER {
-			return WIN
+		if result == LOSE {
+			return PAPER
 		}
 
-		if p1 == SCISSORS {
-			return TIE
+		if result == TIE {
+			return SCISSORS
 		}
 	}
 
@@ -112,9 +110,9 @@ func simulateRound(in string) int {
 	split := strings.Split(in, " ")
 
 	p1 := mapInput(split[0])
-	p2 := mapInput(split[1])
+	result := mapInput(split[1])
 
-	score := p2 + calculateRoundWon(p1, p2)
+	score := result + calculateRound(p1, result)
 
 	return score
 }
