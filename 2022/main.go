@@ -6,6 +6,7 @@ import (
 
 	"github.com/justinbather/aoc/2022/day1"
 	"github.com/justinbather/aoc/2022/day2"
+	"github.com/justinbather/aoc/2022/day3"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,7 @@ type day struct {
 var days = []day{
 	{name: "day1", run: day1.Run},
 	{name: "day2", run: day2.Run},
+	{name: "day3", run: day3.Run},
 }
 
 func main() {
